@@ -237,7 +237,28 @@
     </div>
 
 </div>
+<div class="card">
+    <h2>Binary Search Tree Visualizer</h2>
 
+    <p>Search for a value in this Binary Search Tree.</p>
+
+    <div class="controls">
+        <input
+            id="treeTarget"
+            type="number"
+            value="30"
+            placeholder="Enter target value"
+        >
+        <button onclick="startTreeSearch()">Start Animation</button>
+        <button onclick="nextTreeStep()">Next Step</button>
+        <button onclick="resetTreeSearch()">Reset</button>
+    </div>
+
+    <div id="treeCanvas" style="width:100%; overflow-x:auto;"></div>
+
+    <p id="treeMessage">Enter a value and start searching.</p>
+    <p id="treePath">Search path: —</p>
+</div>
 <script>
     const numberInput = document.getElementById("numberInput");
     const bars = document.getElementById("bars");
@@ -437,6 +458,198 @@
     }
 
     drawBars();
+const treeNodes = [
+    { v: 40, x: 250, y: 35, left: 1, right: 2 },
+    { v: 20, x: 130, y: 115, left: 3, right: 4 },
+    { v: 60, x: 370, y: 115, left: 5, right: 6 },
+    { v: 10, x: 70, y: 195, left: -1, right: -1 },
+    { v: 30, x: 190, y: 195, left: -1, right: -1 },
+    { v: 50, x: 310, y: 195, left: -1, right: -1 },
+    { v: 70, x: 430, y: 195, left: -1, right: -1 }
+];
+
+let treeSteps = [];
+let treeStepIndex = 0;
+let treeTimer = null;
+let treeRunId = 0;
+let treeRunning = false;
+
+function drawTree(current = -1, visited = [], found = false) {
+    let svg = `
+        <svg viewBox="0 0 500 245"
+             width="100%" style="min-width:400px">
+    `;
+
+    treeNodes.forEach((node, i) => {
+        [node.left, node.right].forEach(child => {
+            if (child !== -1) {
+                const c = treeNodes[child];
+                svg += `
+                    <line x1="${node.x}" y1="${node.y}"
+                          x2="${c.x}" y2="${c.y}"
+                          stroke="#94a3b8" stroke-width="2"/>
+                `;
+            }
+        });
+    });
+
+    treeNodes.forEach((node, i) => {
+        let color = "#DBEAFE";
+
+        if (visited.includes(i)) color = "#CBD5E1";
+        if (i === current) color = "#FACC15";
+        if (i === current && found) color = "#22C55E";
+
+        svg += `
+            <circle cx="${node.x}" cy="${node.y}" r="21"
+                    fill="${color}" stroke="#2563EB"
+                    stroke-width="2"/>
+            <text x="${node.x}" y="${node.y + 5}"
+                  text-anchor="middle" font-size="15"
+                  font-weight="bold" fill="#172554">
+                ${node.v}
+            </text>
+        `;
+    });
+
+    svg += "</svg>";
+
+    document.getElementById("treeCanvas").innerHTML = svg;
+}
+
+function startTreeSearch() {
+    clearTimeout(treeTimer);
+    treeRunId++;
+    treeRunning = false;
+
+    const targetText = document.getElementById("treeTarget").value;
+
+    if (targetText.trim() === "" ||
+        !Number.isSafeInteger(Number(targetText))) {
+        document.getElementById("treeMessage").textContent =
+            "Please enter a valid integer.";
+        return;
+    }
+
+    const target = Number(targetText);
+
+    treeSteps = [];
+    treeStepIndex = 0;
+
+    let current = 0;
+    let visited = [];
+
+    while (current !== -1) {
+        visited.push(current);
+
+        const value = treeNodes[current].v;
+
+        treeSteps.push({
+            current: current,
+            visited: [...visited],
+            message: "Checking node " + value,
+            found: value === target
+        });
+
+        if (value === target) break;
+
+        if (target < value) {
+            current = treeNodes[current].left;
+        } else {
+            current = treeNodes[current].right;
+        }
+    }
+
+    if (current === -1) {
+        treeSteps.push({
+            current: -1,
+            visited: [...visited],
+            message: target + " was not found in the tree.",
+            found: false
+        });
+    }
+
+    treeRunning = true;
+    const runId = treeRunId;
+
+    animateTree(runId);
+}
+
+function animateTree(runId) {
+    if (runId !== treeRunId || !treeRunning) return;
+
+    const step = treeSteps[treeStepIndex];
+
+    drawTree(step.current, step.visited, step.found);
+
+    document.getElementById("treeMessage").textContent =
+        step.message;
+
+    document.getElementById("treePath").textContent =
+        "Search path: " +
+        step.visited.map(i => treeNodes[i].v).join(" → ");
+
+    if (step.found) {
+        document.getElementById("treeMessage").textContent =
+            "Target found: " + treeNodes[step.current].v;
+        treeRunning = false;
+        return;
+    }
+
+    if (treeStepIndex === treeSteps.length - 1) {
+        treeRunning = false;
+        return;
+    }
+
+    treeTimer = setTimeout(() => {
+        if (runId !== treeRunId) return;
+        treeStepIndex++;
+        animateTree(runId);
+    }, 1000);
+}
+
+function nextTreeStep() {
+    if (treeSteps.length === 0) return;
+
+    clearTimeout(treeTimer);
+    treeRunId++;
+    treeRunning = false;
+
+    if (treeStepIndex < treeSteps.length - 1) {
+        treeStepIndex++;
+    }
+
+    const step = treeSteps[treeStepIndex];
+
+    drawTree(step.current, step.visited, step.found);
+
+    document.getElementById("treeMessage").textContent =
+        step.found
+            ? "Target found: " + treeNodes[step.current].v
+            : step.message;
+
+    document.getElementById("treePath").textContent =
+        "Search path: " +
+        step.visited.map(i => treeNodes[i].v).join(" → ");
+}
+
+function resetTreeSearch() {
+    clearTimeout(treeTimer);
+    treeRunId++;
+    treeRunning = false;
+    treeSteps = [];
+    treeStepIndex = 0;
+
+    drawTree();
+
+    document.getElementById("treeMessage").textContent =
+        "Enter a value and start searching.";
+
+    document.getElementById("treePath").textContent =
+        "Search path: —";
+}
+
+drawTree();
 </script>
 </body>
 </html>
