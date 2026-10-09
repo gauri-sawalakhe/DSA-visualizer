@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            text-align: center;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2563eb;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+            border-radius: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #numbers {
+            font-size: 24px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>DSA Visualizer</h1>
+    <p>Learn Data Structures and Algorithms step by step.</p>
+
+    <div class="card">
+        <h2>Bubble Sort Visualizer</h2>
+        <p>Enter numbers separated by commas:</p>
+
+        <input id="inputNumbers" value="5, 2, 8, 1, 4">
+        <button onclick="sortNumbers()">Visualize</button>
+
+        <div id="numbers"></div>
+        <p id="message">Your result will appear here.</p>
+    </div>
+
+    <script>
+        function sortNumbers() {
+            const input = document.getElementById("inputNumbers").value;
+
+            const numbers = input.split(",").map(Number);
+
+            if (numbers.length === 0 ||
+                numbers.some(n => !Number.isFinite(n)) ||
+                input.trim() === "") {
+                document.getElementById("message").textContent =
+                    "Please enter valid numbers separated by commas.";
+                return;
+            }
+
+            for (let i = 0; i < numbers.length - 1; i++) {
+                for (let j = 0; j < numbers.length - i - 1; j++) {
+                    if (numbers[j] > numbers[j + 1]) {
+                        let temp = numbers[j];
+                        numbers[j] = numbers[j + 1];
+                        numbers[j + 1] = temp;
+                    }
+                }
+            }
+
+            document.getElementById("numbers").textContent =
+                numbers.join("  |  ");
+
+            document.getElementById("message").textContent =
+                "Sorting completed successfully!";
+        }
+    </script>
+</body>
+</html>
