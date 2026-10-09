@@ -3,84 +3,440 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA Visualizer</title>
+    <title>DSA Visualizer | Bubble Sort</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
+            margin: 0;
+            padding: 25px;
             font-family: Arial, sans-serif;
             background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        h1, h2, p {
             text-align: center;
-            padding: 30px;
         }
 
         h1 {
             color: #2563eb;
         }
 
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
         .card {
             background: white;
-            padding: 20px;
-            margin: 20px auto;
-            max-width: 500px;
-            border-radius: 12px;
+            padding: 22px;
+            margin-top: 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 15px #00000010;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        input, button {
+            padding: 11px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            max-width: 400px;
         }
 
         button {
-            padding: 10px 16px;
-            margin: 5px;
+            background: #2563eb;
+            color: white;
+            border: none;
             cursor: pointer;
         }
 
-        #numbers {
-            font-size: 24px;
-            margin: 20px;
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #bars {
+            height: 310px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 6px;
+            padding: 15px 5px 0;
+            border-bottom: 2px solid #94a3b8;
+        }
+
+        .bar {
+            flex: 1;
+            max-width: 65px;
+            min-width: 0;
+            background: #60a5fa;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 6px;
+            color: #172554;
+            font-weight: bold;
+            transition: height 0.2s, background 0.2s;
+        }
+
+        .bar span {
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        .bar.comparing {
+            background: #facc15;
+        }
+
+        .bar.swapping {
+            background: #f97316;
+        }
+
+        .bar.sorted {
+            background: #22c55e;
+        }
+
+        #message {
+            min-height: 25px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 10px;
+            }
+
+            #bars {
+                gap: 3px;
+            }
+
+            .bar span {
+                font-size: 10px;
+            }
         }
     </style>
 </head>
+
 <body>
+<div class="container">
+
     <h1>DSA Visualizer</h1>
-    <p>Learn Data Structures and Algorithms step by step.</p>
+    <p>Learn algorithms through interactive animations.</p>
 
     <div class="card">
         <h2>Bubble Sort Visualizer</h2>
+
         <p>Enter numbers separated by commas:</p>
 
-        <input id="inputNumbers" value="5, 2, 8, 1, 4">
-        <button onclick="sortNumbers()">Visualize</button>
+        <div class="controls">
+            <input
+                id="numberInput"
+                value="5, 2, 8, 1, 4"
+                aria-label="Numbers to sort"
+            >
+            <button id="loadBtn" onclick="loadNumbers()">
+                Load Numbers
+            </button>
+        </div>
 
-        <div id="numbers"></div>
-        <p id="message">Your result will appear here.</p>
+        <div id="bars"></div>
+
+        <div class="legend">
+            <span><i class="dot" style="background:#60a5fa"></i>Unsorted</span>
+            <span><i class="dot" style="background:#facc15"></i>Comparing</span>
+            <span><i class="dot" style="background:#f97316"></i>Swapping</span>
+            <span><i class="dot" style="background:#22c55e"></i>Sorted</span>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" onclick="startSort()">Start</button>
+            <button id="pauseBtn" onclick="togglePause()" disabled>
+                Pause
+            </button>
+            <button id="resetBtn" onclick="resetSort()">Reset</button>
+        </div>
+
+        <p>Animation speed:</p>
+        <div class="controls">
+            <input
+                type="range"
+                id="speed"
+                min="100"
+                max="1000"
+                value="500"
+                step="100"
+                aria-label="Animation speed"
+            >
+        </div>
+
+        <p id="message">Enter numbers and click Start.</p>
+
+        <div class="info">
+            <p>Comparisons: <strong id="comparisons">0</strong></p>
+            <p>Swaps: <strong id="swaps">0</strong></p>
+        </div>
     </div>
 
-    <script>
-        function sortNumbers() {
-            const input = document.getElementById("inputNumbers").value;
+    <div class="card">
+        <h2>How Bubble Sort Works</h2>
+        <p>
+            Bubble Sort compares two adjacent numbers.
+            If the left number is larger, it swaps them.
+            After each pass, the largest remaining number
+            reaches its correct position.
+        </p>
+        <p><strong>Time complexity:</strong> O(n²) worst case</p>
+        <p><strong>Space complexity:</strong> O(1) auxiliary space</p>
+    </div>
 
-            const numbers = input.split(",").map(Number);
+</div>
 
-            if (numbers.length === 0 ||
-                numbers.some(n => !Number.isFinite(n)) ||
-                input.trim() === "") {
-                document.getElementById("message").textContent =
-                    "Please enter valid numbers separated by commas.";
-                return;
+<script>
+    const numberInput = document.getElementById("numberInput");
+    const bars = document.getElementById("bars");
+    const message = document.getElementById("message");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const loadBtn = document.getElementById("loadBtn");
+    const speedInput = document.getElementById("speed");
+
+    let originalNumbers = [5, 2, 8, 1, 4];
+    let numbers = [...originalNumbers];
+
+    let running = false;
+    let paused = false;
+    let comparisons = 0;
+    let swaps = 0;
+    let timerId = null;
+
+    function drawBars(first = -1, second = -1, sortedFrom = numbers.length) {
+        bars.innerHTML = "";
+
+        const maxValue = Math.max(1, ...numbers.map(n => Math.abs(n)));
+
+        numbers.forEach((number, index) => {
+            const bar = document.createElement("div");
+            bar.className = "bar";
+
+            bar.style.height =
+                Math.max(8, Math.abs(number) / maxValue * 260) + "px";
+
+            const label = document.createElement("span");
+            label.textContent = number;
+            bar.appendChild(label);
+
+            if (index >= sortedFrom) {
+                bar.classList.add("sorted");
             }
 
-            for (let i = 0; i < numbers.length - 1; i++) {
-                for (let j = 0; j < numbers.length - i - 1; j++) {
-                    if (numbers[j] > numbers[j + 1]) {
-                        let temp = numbers[j];
-                        numbers[j] = numbers[j + 1];
-                        numbers[j + 1] = temp;
-                    }
-                }
+            if (index === first || index === second) {
+                bar.classList.remove("sorted");
+                bar.classList.add("comparing");
             }
 
-            document.getElementById("numbers").textContent =
-                numbers.join("  |  ");
+            bars.appendChild(bar);
+        });
+    }
 
-            document.getElementById("message").textContent =
-                "Sorting completed successfully!";
+    function updateStats() {
+        document.getElementById("comparisons").textContent = comparisons;
+        document.getElementById("swaps").textContent = swaps;
+    }
+
+    function loadNumbers() {
+        if (running) return;
+
+        const text = numberInput.value.trim();
+        const parts = text.split(",");
+
+        if (
+            text === "" ||
+            parts.length > 50 ||
+            parts.some(part => part.trim() === "" ||
+                !Number.isFinite(Number(part.trim())) ||
+                !Number.isSafeInteger(Number(part.trim())))
+        ) {
+            message.textContent =
+                "Enter 1–50 valid integers separated by commas.";
+            return;
         }
-    </script>
+
+        originalNumbers = parts.map(part => Number(part.trim()));
+        numbers = [...originalNumbers];
+
+        comparisons = 0;
+        swaps = 0;
+
+        updateStats();
+        drawBars();
+
+        message.textContent = "Numbers loaded. Click Start.";
+    }
+
+    function wait(ms) {
+        return new Promise(resolve => {
+            timerId = setTimeout(resolve, ms);
+        });
+    }
+
+    async function waitIfPaused() {
+        while (paused) {
+            await wait(100);
+        }
+    }
+
+    async function startSort() {
+        if (running) return;
+
+        running = true;
+        paused = false;
+
+        startBtn.disabled = true;
+        loadBtn.disabled = true;
+        pauseBtn.disabled = false;
+        pauseBtn.textContent = "Pause";
+
+        comparisons = 0;
+        swaps = 0;
+        updateStats();
+
+        let finished = 0;
+        let changed;
+
+        for (let i = 0; i < numbers.length - 1; i++) {
+            changed = false;
+
+            for (let j = 0; j < numbers.length - i - 1; j++) {
+                await waitIfPaused();
+
+                comparisons++;
+                message.textContent =
+                    "Comparing " + numbers[j] + " and " + numbers[j + 1];
+
+                drawBars(j, j + 1, numbers.length - finished);
+                updateStats();
+
+                await wait(Number(speedInput.value));
+
+                await waitIfPaused();
+
+                if (numbers[j] > numbers[j + 1]) {
+                    [numbers[j], numbers[j + 1]] =
+                        [numbers[j + 1], numbers[j]];
+
+                    swaps++;
+                    changed = true;
+
+                    drawBars(j, j + 1, numbers.length - finished);
+                    updateStats();
+
+                    message.textContent =
+                        "Swapped! " + numbers[j] + " and " + numbers[j + 1];
+
+                    await wait(Number(speedInput.value));
+                }
+
+                await waitIfPaused();
+            }
+
+            finished++;
+            drawBars(-1, -1, numbers.length - finished);
+
+            if (!changed) break;
+        }
+
+        running = false;
+        paused = false;
+
+        startBtn.disabled = false;
+        loadBtn.disabled = false;
+        pauseBtn.disabled = true;
+
+        drawBars(-1, -1, 0);
+
+        message.textContent = "Sorting completed successfully!";
+    }
+
+    function togglePause() {
+        if (!running) return;
+
+        paused = !paused;
+        pauseBtn.textContent = paused ? "Resume" : "Pause";
+
+        message.textContent = paused
+            ? "Sorting paused."
+            : "Sorting resumed.";
+    }
+
+    function resetSort() {
+        clearTimeout(timerId);
+
+        running = false;
+        paused = false;
+
+        numbers = [...originalNumbers];
+        comparisons = 0;
+        swaps = 0;
+
+        startBtn.disabled = false;
+        loadBtn.disabled = false;
+        pauseBtn.disabled = true;
+        pauseBtn.textContent = "Pause";
+
+        updateStats();
+        drawBars();
+
+        message.textContent = "Reset complete. Click Start.";
+    }
+
+    drawBars();
+</script>
 </body>
 </html>
