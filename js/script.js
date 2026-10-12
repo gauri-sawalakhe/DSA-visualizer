@@ -350,6 +350,62 @@ function render() {
     }
 }
 
+function renderSearchHighlight(value, found) {
+    if (isTree()) {
+        if (category.value === "threaded") {
+            renderThreadedTree(viz, tree, $("threadingType").value, found ? value : null);
+        } else {
+            renderTree(viz, tree, found ? value : null);
+        }
+    } else if (isGraph()) {
+        renderGraph(viz, graph, found ? [value] : []);
+    } else {
+        renderLinear(viz, data, label(), found ? data.indexOf(value) : -1);
+    }
+}
+
+function animateSearch(path, value, found) {
+    stopAnimation();
+    let index = 0;
+
+    const visit = () => {
+        if (index >= path.length) {
+            timer = null;
+            renderSearchHighlight(value, found);
+            msg(found
+                ? `Found ${value}. Search path: ${path.join(" → ")}`
+                : `${value} not found. Checked: ${path.join(" → ") || "no values"}`);
+            $("stepLabel").textContent = found ? "Found" : "Not found";
+            showTraversalsIfTree();
+            return;
+        }
+
+        const current = path[index];
+        const reached = found && current === value;
+        if (isTree()) {
+            if (category.value === "threaded") {
+                renderThreadedTree(viz, tree, $("threadingType").value, reached ? value : null);
+            } else {
+                renderTree(viz, tree, reached ? value : null);
+            }
+        } else if (isGraph()) {
+            renderGraph(viz, graph, path.slice(0, index + 1));
+        } else {
+            renderLinear(viz, data, label(), data.indexOf(current));
+        }
+        $("stepLabel").textContent = `Checking ${current}`;
+        msg(`Checking ${current}...`);
+        index++;
+        timer = setTimeout(visit, Number($("speed").value));
+    };
+
+    visit();
+}
+
+function showTraversalsIfTree() {
+    if (isTree()) showTraversals();
+}
+
 // ==========================================
 // 9. TREE TRAVERSALS
 // ==========================================
@@ -676,6 +732,7 @@ function applyOp() {
     }
 
     const operation = $("operation").value;
+    const oldValueText = $("oldValue").value.trim();
     const valueText = $("opValue").value.trim();
     const indexText = $("opIndex").value.trim();
 
@@ -683,6 +740,10 @@ function applyOp() {
     let index;
 
     try {
+        if (operation === "update" && oldValueText === "") {
+            throw Error("Enter the current value to update.");
+        }
+
         if (
             operation !== "delete" &&
             operation !== "search" &&
@@ -701,7 +762,16 @@ function applyOp() {
             throw Error("Value must be a valid integer.");
         }
 
+        if (
+            oldValueText !== "" &&
+            (!/^-?\d+$/.test(oldValueText) ||
+                !Number.isSafeInteger(Number(oldValueText)))
+        ) {
+            throw Error("Current value must be a valid integer.");
+        }
+
         value = Number(valueText);
+        const oldValue = oldValueText === "" ? value : Number(oldValueText);
 
         index = indexText === ""
             ? (operation === "insert" ? data.length : -1)
@@ -741,35 +811,17 @@ function applyOp() {
                     : deleteNode(tree, value);
 
             } else if (operation === "update") {
-                throw Error(
-                    "Updating a tree node is not supported. Delete the old value and insert the new value."
-                );
-
+                if (!data.includes(oldValue)) {
+                    throw Error(`${oldValue} does not exist in the tree.`);
+                }
+                if (oldValue !== value && data.includes(value)) {
+                    throw Error(`Duplicate tree value ${value} is not allowed.`);
+                }
+                data = data.map(item => item === oldValue ? value : item);
+                tree = buildSelectedTree(data);
             } else {
                 const result = searchSelectedTree(value);
-
-                if (category.value === "threaded") {
-                    renderThreadedTree(
-                        viz,
-                        tree,
-                        $("threadingType").value,
-                        result.found ? value : null
-                    );
-                } else {
-                    renderTree(
-                        viz,
-                        tree,
-                        result.found ? value : null
-                    );
-                }
-
-                msg(
-                    result.found
-                        ? `Found ${value}. Path: ${result.path.join(" → ")}`
-                        : `${value} not found. Path: ${result.path.join(" → ")}`
-                );
-
-                showTraversals();
+                animateSearch(result.path, value, result.found);
                 return;
             }
 
@@ -795,24 +847,23 @@ function applyOp() {
         // GRAPH OPERATIONS
         if (isGraph()) {
             if (operation === "search") {
-                if (!graph.nodes.includes(value)) {
-                    throw Error(
-                        `${value} is not a graph node.`
-                    );
-                }
-
                 const path = traverseGraph(
                     graph,
                     graph.nodes[0],
                     "BFS"
                 );
+                animateSearch(path, value, graph.nodes.includes(value));
+                return;
+            }
 
-                renderGraph(viz, graph, [value]);
-
-                msg(
-                    `Node ${value} exists. BFS from ${graph.nodes[0]}: ${path.join(" → ")}`
-                );
-
+            if (operation === "update") {
+                if (!data.includes(oldValue)) {
+                    throw Error(`${oldValue} does not exist in the graph.`);
+                }
+                data = data.map(item => item === oldValue ? value : item);
+                graph = buildGraph(data, category.value === "directed");
+                render();
+                msg(`Updated ${oldValue} to ${value}. Graph rebuilt.`);
                 return;
             }
 
@@ -822,6 +873,22 @@ function applyOp() {
         }
 
         // ARRAY, LINKED LIST, STACK AND QUEUE
+        if (operation === "search") {
+            const path = [...data];
+            animateSearch(path, value, path.includes(value));
+            return;
+        }
+
+        if (operation === "update") {
+            const updateIndex = indexText === ""
+                ? data.indexOf(oldValue)
+                : index;
+            if (updateIndex < 0 || updateIndex >= data.length) {
+                throw Error(`${oldValue} does not exist at a valid position.`);
+            }
+            index = updateIndex;
+        }
+
         const result = applyLinearOperation(
             data,
             label(),
@@ -902,6 +969,13 @@ $("applyOpBtn").addEventListener(
     applyOp
 );
 
+$("operation").addEventListener("change", () => {
+    const isUpdate = $("operation").value === "update";
+    $("oldValueField").classList.toggle("hidden", !isUpdate);
+    $("opValueLabel").textContent = isUpdate ? "New value" : "Value";
+    $("opValue").placeholder = isUpdate ? "e.g. 25" : "e.g. 25";
+});
+
 // PAUSE AND RESUME
 $("pauseBtn").addEventListener("click", () => {
     if (timer === null && !paused) {
@@ -950,7 +1024,12 @@ document.getElementById("resetBtn").addEventListener("click", () => {
         );
 
         render();
+    } else {
+        render();
     }
+
+    $("stepLabel").textContent = "Reset";
+    msg("Reset to the original loaded values.");
 });
 
 category.addEventListener("change", setChoices);

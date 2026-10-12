@@ -70,11 +70,12 @@
           <h3>Operations</h3>
           <div class="operation-grid">
             <div class="field"><label for="operation">Operation</label><select id="operation"><option value="insert">Insert</option><option value="update">Update</option><option value="delete">Delete</option><option value="search">Search</option></select></div>
-            <div class="field"><label for="opValue">Value</label><input id="opValue" type="number" placeholder="e.g. 25"></div>
+            <div class="field hidden" id="oldValueField"><label for="oldValue">Current value</label><input id="oldValue" type="number" placeholder="e.g. 20"></div>
+            <div class="field"><label for="opValue" id="opValueLabel">Value</label><input id="opValue" type="number" placeholder="e.g. 25"></div>
             <div class="field" id="indexField"><label for="opIndex">Index / position (0-based)</label><input id="opIndex" type="number" min="0" placeholder="e.g. 2"></div>
           </div>
           <button id="applyOpBtn" class="secondary">Apply operation & animate</button>
-          <p class="muted small">For trees, insertion and search use the value. Deletion removes a matching value. Index is used for linear structures.</p>
+          <p class="muted small">Search walks from the first node. Update replaces the current value with the new value and repositions it when the structure requires ordering.</p>
         </div>
         <div id="traversals" class="traversals hidden"><h3>Tree traversals</h3><div id="traversalResults"></div></div>
       </section>
