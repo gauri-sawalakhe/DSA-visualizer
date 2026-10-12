@@ -1,655 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA Visualizer | Bubble Sort</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 25px;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        h1, h2, p {
-            text-align: center;
-        }
-
-        h1 {
-            color: #2563eb;
-        }
-
-        .container {
-            max-width: 850px;
-            margin: auto;
-        }
-
-        .card {
-            background: white;
-            padding: 22px;
-            margin-top: 20px;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px #00000010;
-        }
-
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        input, button {
-            padding: 11px;
-            border-radius: 7px;
-            border: 1px solid #cbd5e1;
-            font-size: 15px;
-        }
-
-        input {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        button {
-            background: #2563eb;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #1d4ed8;
-        }
-
-        button:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        #bars {
-            height: 310px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            gap: 6px;
-            padding: 15px 5px 0;
-            border-bottom: 2px solid #94a3b8;
-        }
-
-        .bar {
-            flex: 1;
-            max-width: 65px;
-            min-width: 0;
-            background: #60a5fa;
-            border-radius: 5px 5px 0 0;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 6px;
-            color: #172554;
-            font-weight: bold;
-            transition: height 0.2s, background 0.2s;
-        }
-
-        .bar span {
-            font-size: 13px;
-            overflow: hidden;
-        }
-
-        .bar.comparing {
-            background: #facc15;
-        }
-
-        .bar.swapping {
-            background: #f97316;
-        }
-
-        .bar.sorted {
-            background: #22c55e;
-        }
-
-        #message {
-            min-height: 25px;
-            font-weight: bold;
-            color: #2563eb;
-        }
-
-        .info {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 12px;
-            text-align: center;
-        }
-
-        .legend {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 15px;
-            font-size: 14px;
-        }
-
-        .dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            margin-right: 5px;
-        }
-
-        @media (max-width: 500px) {
-            body {
-                padding: 10px;
-            }
-
-            #bars {
-                gap: 3px;
-            }
-
-            .bar span {
-                font-size: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSA Visualizer</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
-<div class="container">
+  <header class="hero">
+    <div class="brand-mark">DSA</div>
+    <div><p class="eyebrow">LEARN BY SEEING</p><h1>Data Structure & Algorithm Visualizer</h1>
+    <p class="subtitle">Choose a topic, enter your data, and watch every step.</p></div>
+  </header>
 
-    <h1>DSA Visualizer</h1>
-    <p>Learn algorithms through interactive animations.</p>
+  <main class="layout">
+    <aside class="sidebar card">
+      <h2>Explore topics</h2>
+      <label for="category">Category</label>
+      <select id="category">
+        <option value="sorting">Sorting algorithms</option>
+        <option value="array">Arrays</option>
+        <option value="singly">Singly linked list</option>
+        <option value="doubly">Doubly linked list</option>
+        <option value="stack">Stack</option>
+        <option value="queue">Queue</option>
+        <option value="binary">Binary tree</option>
+        <option value="bst">Binary search tree</option>
+        <option value="threaded">Threaded BST</option>
+        <option value="avl">AVL tree (concept view)</option>
+        <option value="directed">Directed graph</option>
+        <option value="undirected">Undirected graph</option>
+      </select>
+      <label for="algorithm">Algorithm / structure</label>
+      <select id="algorithm"></select>
+      <div id="threadingField" class="field hidden">
+        <label for="threadingType">Threading type</label>
+        <select id="threadingType">
+          <option value="left">Left-threaded</option>
+          <option value="right">Right-threaded</option>
+          <option value="double">Double-threaded</option>
+        </select>
+      </div>
+      <div id="preview" class="preview" aria-label="Topic preview animation"></div>
+      <p id="previewCaption" class="muted">Preview animation</p>
+      <div class="tip"><strong>Tip</strong><p>Use integers separated by commas, spaces, or one per line. Maximum: 30 values.</p></div>
+    </aside>
 
-    <div class="card">
-        <h2>Bubble Sort Visualizer</h2>
-
-        <p>Enter numbers separated by commas:</p>
-
-        <div class="controls">
-            <input
-                id="numberInput"
-                value="5, 2, 8, 1, 4"
-                aria-label="Numbers to sort"
-            >
-            <button id="loadBtn" onclick="loadNumbers()">
-                Load Numbers
-            </button>
+    <section class="workspace">
+      <section class="card">
+        <div class="section-heading"><div><p class="eyebrow">STEP 1</p><h2>Enter your input</h2></div><span class="pill" id="modePill">Sorting</span></div>
+        <div id="countRow" class="form-row">
+          <div class="field"><label for="count">Number of elements (1–30)</label><input id="count" type="number" min="1" max="30" value="5"></div>
+          <button id="makeInputs" class="secondary">Create input boxes</button>
         </div>
+        <div id="inputsArea" class="inputs-area"></div>
+        <div class="field full"><label for="values">Or enter values directly</label><textarea id="values" rows="2" placeholder="Example: 40, 20, 60, 10, 30"></textarea></div>
+        <div class="button-row"><button id="loadBtn">Load & visualize</button><button id="randomBtn" class="secondary">Random sample</button><button id="clearBtn" class="ghost">Clear</button></div>
+        <p id="status" class="status" role="status">Choose a topic and load your input.</p>
+      </section>
 
-        <div id="bars"></div>
-
-        <div class="legend">
-            <span><i class="dot" style="background:#60a5fa"></i>Unsorted</span>
-            <span><i class="dot" style="background:#facc15"></i>Comparing</span>
-            <span><i class="dot" style="background:#f97316"></i>Swapping</span>
-            <span><i class="dot" style="background:#22c55e"></i>Sorted</span>
+      <section class="card">
+        <div class="section-heading"><div><p class="eyebrow">STEP 2</p><h2>Live visualization</h2></div><span class="pill" id="stepLabel">Ready</span></div>
+        <div id="visualization" class="visualization"><p class="empty">Your animation will appear here.</p></div>
+        <div class="button-row controls">
+          <button id="startBtn">▶ Animate</button><button id="pauseBtn" class="secondary" disabled>Pause</button><button id="stepBtn" class="secondary">Next step</button><button id="resetBtn" class="ghost">Reset</button>
         </div>
-
-        <div class="controls">
-            <button id="startBtn" onclick="startSort()">Start</button>
-            <button id="pauseBtn" onclick="togglePause()" disabled>
-                Pause
-            </button>
-            <button id="resetBtn" onclick="resetSort()">Reset</button>
+        <div class="speed-row"><label for="speed">Animation speed</label><input id="speed" type="range" min="150" max="1000" step="50" value="500"><span id="speedValue">500 ms</span></div>
+        <div id="operationPanel" class="operation-panel">
+          <h3>Operations</h3>
+          <div class="operation-grid">
+            <div class="field"><label for="operation">Operation</label><select id="operation"><option value="insert">Insert</option><option value="update">Update</option><option value="delete">Delete</option><option value="search">Search</option></select></div>
+            <div class="field"><label for="opValue">Value</label><input id="opValue" type="number" placeholder="e.g. 25"></div>
+            <div class="field" id="indexField"><label for="opIndex">Index / position (0-based)</label><input id="opIndex" type="number" min="0" placeholder="e.g. 2"></div>
+          </div>
+          <button id="applyOpBtn" class="secondary">Apply operation & animate</button>
+          <p class="muted small">For trees, insertion and search use the value. Deletion removes a matching value. Index is used for linear structures.</p>
         </div>
-
-        <p>Animation speed:</p>
-        <div class="controls">
-            <input
-                type="range"
-                id="speed"
-                min="100"
-                max="1000"
-                value="500"
-                step="100"
-                aria-label="Animation speed"
-            >
-        </div>
-
-        <p id="message">Enter numbers and click Start.</p>
-
-        <div class="info">
-            <p>Comparisons: <strong id="comparisons">0</strong></p>
-            <p>Swaps: <strong id="swaps">0</strong></p>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>How Bubble Sort Works</h2>
-        <p>
-            Bubble Sort compares two adjacent numbers.
-            If the left number is larger, it swaps them.
-            After each pass, the largest remaining number
-            reaches its correct position.
-        </p>
-        <p><strong>Time complexity:</strong> O(n²) worst case</p>
-        <p><strong>Space complexity:</strong> O(1) auxiliary space</p>
-    </div>
-
-</div>
-<div class="card">
-    <h2>Binary Search Tree Visualizer</h2>
-
-    <p>Search for a value in this Binary Search Tree.</p>
-
-    <div class="controls">
-        <input
-            id="treeTarget"
-            type="number"
-            value="30"
-            placeholder="Enter target value"
-        >
-        <button onclick="startTreeSearch()">Start Animation</button>
-        <button onclick="nextTreeStep()">Next Step</button>
-        <button onclick="resetTreeSearch()">Reset</button>
-    </div>
-
-    <div id="treeCanvas" style="width:100%; overflow-x:auto;"></div>
-
-    <p id="treeMessage">Enter a value and start searching.</p>
-    <p id="treePath">Search path: —</p>
-</div>
-<script>
-    const numberInput = document.getElementById("numberInput");
-    const bars = document.getElementById("bars");
-    const message = document.getElementById("message");
-    const startBtn = document.getElementById("startBtn");
-    const pauseBtn = document.getElementById("pauseBtn");
-    const loadBtn = document.getElementById("loadBtn");
-    const speedInput = document.getElementById("speed");
-
-    let originalNumbers = [5, 2, 8, 1, 4];
-    let numbers = [...originalNumbers];
-
-    let running = false;
-    let paused = false;
-    let comparisons = 0;
-    let swaps = 0;
-    let timerId = null;
-
-    function drawBars(first = -1, second = -1, sortedFrom = numbers.length) {
-        bars.innerHTML = "";
-
-        const maxValue = Math.max(1, ...numbers.map(n => Math.abs(n)));
-
-        numbers.forEach((number, index) => {
-            const bar = document.createElement("div");
-            bar.className = "bar";
-
-            bar.style.height =
-                Math.max(8, Math.abs(number) / maxValue * 260) + "px";
-
-            const label = document.createElement("span");
-            label.textContent = number;
-            bar.appendChild(label);
-
-            if (index >= sortedFrom) {
-                bar.classList.add("sorted");
-            }
-
-            if (index === first || index === second) {
-                bar.classList.remove("sorted");
-                bar.classList.add("comparing");
-            }
-
-            bars.appendChild(bar);
-        });
-    }
-
-    function updateStats() {
-        document.getElementById("comparisons").textContent = comparisons;
-        document.getElementById("swaps").textContent = swaps;
-    }
-
-    function loadNumbers() {
-        if (running) return;
-
-        const text = numberInput.value.trim();
-        const parts = text.split(",");
-
-        if (
-            text === "" ||
-            parts.length > 50 ||
-            parts.some(part => part.trim() === "" ||
-                !Number.isFinite(Number(part.trim())) ||
-                !Number.isSafeInteger(Number(part.trim())))
-        ) {
-            message.textContent =
-                "Enter 1–50 valid integers separated by commas.";
-            return;
-        }
-
-        originalNumbers = parts.map(part => Number(part.trim()));
-        numbers = [...originalNumbers];
-
-        comparisons = 0;
-        swaps = 0;
-
-        updateStats();
-        drawBars();
-
-        message.textContent = "Numbers loaded. Click Start.";
-    }
-
-    function wait(ms) {
-        return new Promise(resolve => {
-            timerId = setTimeout(resolve, ms);
-        });
-    }
-
-    async function waitIfPaused() {
-        while (paused) {
-            await wait(100);
-        }
-    }
-
-    async function startSort() {
-        if (running) return;
-
-        running = true;
-        paused = false;
-
-        startBtn.disabled = true;
-        loadBtn.disabled = true;
-        pauseBtn.disabled = false;
-        pauseBtn.textContent = "Pause";
-
-        comparisons = 0;
-        swaps = 0;
-        updateStats();
-
-        let finished = 0;
-        let changed;
-
-        for (let i = 0; i < numbers.length - 1; i++) {
-            changed = false;
-
-            for (let j = 0; j < numbers.length - i - 1; j++) {
-                await waitIfPaused();
-
-                comparisons++;
-                message.textContent =
-                    "Comparing " + numbers[j] + " and " + numbers[j + 1];
-
-                drawBars(j, j + 1, numbers.length - finished);
-                updateStats();
-
-                await wait(Number(speedInput.value));
-
-                await waitIfPaused();
-
-                if (numbers[j] > numbers[j + 1]) {
-                    [numbers[j], numbers[j + 1]] =
-                        [numbers[j + 1], numbers[j]];
-
-                    swaps++;
-                    changed = true;
-
-                    drawBars(j, j + 1, numbers.length - finished);
-                    updateStats();
-
-                    message.textContent =
-                        "Swapped! " + numbers[j] + " and " + numbers[j + 1];
-
-                    await wait(Number(speedInput.value));
-                }
-
-                await waitIfPaused();
-            }
-
-            finished++;
-            drawBars(-1, -1, numbers.length - finished);
-
-            if (!changed) break;
-        }
-
-        running = false;
-        paused = false;
-
-        startBtn.disabled = false;
-        loadBtn.disabled = false;
-        pauseBtn.disabled = true;
-
-        drawBars(-1, -1, 0);
-
-        message.textContent = "Sorting completed successfully!";
-    }
-
-    function togglePause() {
-        if (!running) return;
-
-        paused = !paused;
-        pauseBtn.textContent = paused ? "Resume" : "Pause";
-
-        message.textContent = paused
-            ? "Sorting paused."
-            : "Sorting resumed.";
-    }
-
-    function resetSort() {
-        clearTimeout(timerId);
-
-        running = false;
-        paused = false;
-
-        numbers = [...originalNumbers];
-        comparisons = 0;
-        swaps = 0;
-
-        startBtn.disabled = false;
-        loadBtn.disabled = false;
-        pauseBtn.disabled = true;
-        pauseBtn.textContent = "Pause";
-
-        updateStats();
-        drawBars();
-
-        message.textContent = "Reset complete. Click Start.";
-    }
-
-    drawBars();
-const treeNodes = [
-    { v: 40, x: 250, y: 35, left: 1, right: 2 },
-    { v: 20, x: 130, y: 115, left: 3, right: 4 },
-    { v: 60, x: 370, y: 115, left: 5, right: 6 },
-    { v: 10, x: 70, y: 195, left: -1, right: -1 },
-    { v: 30, x: 190, y: 195, left: -1, right: -1 },
-    { v: 50, x: 310, y: 195, left: -1, right: -1 },
-    { v: 70, x: 430, y: 195, left: -1, right: -1 }
-];
-
-let treeSteps = [];
-let treeStepIndex = 0;
-let treeTimer = null;
-let treeRunId = 0;
-let treeRunning = false;
-
-function drawTree(current = -1, visited = [], found = false) {
-    let svg = `
-        <svg viewBox="0 0 500 245"
-             width="100%" style="min-width:400px">
-    `;
-
-    treeNodes.forEach((node, i) => {
-        [node.left, node.right].forEach(child => {
-            if (child !== -1) {
-                const c = treeNodes[child];
-                svg += `
-                    <line x1="${node.x}" y1="${node.y}"
-                          x2="${c.x}" y2="${c.y}"
-                          stroke="#94a3b8" stroke-width="2"/>
-                `;
-            }
-        });
-    });
-
-    treeNodes.forEach((node, i) => {
-        let color = "#DBEAFE";
-
-        if (visited.includes(i)) color = "#CBD5E1";
-        if (i === current) color = "#FACC15";
-        if (i === current && found) color = "#22C55E";
-
-        svg += `
-            <circle cx="${node.x}" cy="${node.y}" r="21"
-                    fill="${color}" stroke="#2563EB"
-                    stroke-width="2"/>
-            <text x="${node.x}" y="${node.y + 5}"
-                  text-anchor="middle" font-size="15"
-                  font-weight="bold" fill="#172554">
-                ${node.v}
-            </text>
-        `;
-    });
-
-    svg += "</svg>";
-
-    document.getElementById("treeCanvas").innerHTML = svg;
-}
-
-function startTreeSearch() {
-    clearTimeout(treeTimer);
-    treeRunId++;
-    treeRunning = false;
-
-    const targetText = document.getElementById("treeTarget").value;
-
-    if (targetText.trim() === "" ||
-        !Number.isSafeInteger(Number(targetText))) {
-        document.getElementById("treeMessage").textContent =
-            "Please enter a valid integer.";
-        return;
-    }
-
-    const target = Number(targetText);
-
-    treeSteps = [];
-    treeStepIndex = 0;
-
-    let current = 0;
-    let visited = [];
-
-    while (current !== -1) {
-        visited.push(current);
-
-        const value = treeNodes[current].v;
-
-        treeSteps.push({
-            current: current,
-            visited: [...visited],
-            message: "Checking node " + value,
-            found: value === target
-        });
-
-        if (value === target) break;
-
-        if (target < value) {
-            current = treeNodes[current].left;
-        } else {
-            current = treeNodes[current].right;
-        }
-    }
-
-    if (current === -1) {
-        treeSteps.push({
-            current: -1,
-            visited: [...visited],
-            message: target + " was not found in the tree.",
-            found: false
-        });
-    }
-
-    treeRunning = true;
-    const runId = treeRunId;
-
-    animateTree(runId);
-}
-
-function animateTree(runId) {
-    if (runId !== treeRunId || !treeRunning) return;
-
-    const step = treeSteps[treeStepIndex];
-
-    drawTree(step.current, step.visited, step.found);
-
-    document.getElementById("treeMessage").textContent =
-        step.message;
-
-    document.getElementById("treePath").textContent =
-        "Search path: " +
-        step.visited.map(i => treeNodes[i].v).join(" → ");
-
-    if (step.found) {
-        document.getElementById("treeMessage").textContent =
-            "Target found: " + treeNodes[step.current].v;
-        treeRunning = false;
-        return;
-    }
-
-    if (treeStepIndex === treeSteps.length - 1) {
-        treeRunning = false;
-        return;
-    }
-
-    treeTimer = setTimeout(() => {
-        if (runId !== treeRunId) return;
-        treeStepIndex++;
-        animateTree(runId);
-    }, 1000);
-}
-
-function nextTreeStep() {
-    if (treeSteps.length === 0) return;
-
-    clearTimeout(treeTimer);
-    treeRunId++;
-    treeRunning = false;
-
-    if (treeStepIndex < treeSteps.length - 1) {
-        treeStepIndex++;
-    }
-
-    const step = treeSteps[treeStepIndex];
-
-    drawTree(step.current, step.visited, step.found);
-
-    document.getElementById("treeMessage").textContent =
-        step.found
-            ? "Target found: " + treeNodes[step.current].v
-            : step.message;
-
-    document.getElementById("treePath").textContent =
-        "Search path: " +
-        step.visited.map(i => treeNodes[i].v).join(" → ");
-}
-
-function resetTreeSearch() {
-    clearTimeout(treeTimer);
-    treeRunId++;
-    treeRunning = false;
-    treeSteps = [];
-    treeStepIndex = 0;
-
-    drawTree();
-
-    document.getElementById("treeMessage").textContent =
-        "Enter a value and start searching.";
-
-    document.getElementById("treePath").textContent =
-        "Search path: —";
-}
-
-drawTree();
-</script>
+        <div id="traversals" class="traversals hidden"><h3>Tree traversals</h3><div id="traversalResults"></div></div>
+      </section>
+    </section>
+  </main>
+  <footer>DSA Visualizer · Front-end learning project · Input validation enabled</footer>
+  <script type="module" src="js/script.js"></script>
 </body>
 </html>
